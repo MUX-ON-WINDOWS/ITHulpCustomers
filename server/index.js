@@ -13,12 +13,6 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from React app in production
-if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
-  app.use(express.static(path.join(__dirname, '../client/build')));
-}
-
 // MySQL Database Connection
 const dbConfig = {
   host: process.env.DB_HOST || '100.116.74.88',
@@ -168,20 +162,8 @@ async function initializeSchema() {
   }
 }
 
-// Serve static files from React app in production
-if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  // Serve React app for all non-API routes
-  app.get('*', (req, res) => {
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
-  });
-} else {
-  // Root route for development
+// Root route for development
+if (process.env.NODE_ENV !== 'production') {
   app.get('/', (req, res) => {
     res.json({
       message: 'IT Hulp Klantensysteem API',
@@ -389,7 +371,7 @@ app.get('/api/customers', authenticateToken, async (req, res) => {
 });
 
 // Get single customer with assignments
-app.get('/api/customers/:id', async (req, res) => {
+app.get('/api/customers/:id', authenticateToken, async (req, res) => {
   try {
     const [customers] = await pool.query('SELECT * FROM customers WHERE id = ?', [req.params.id]);
     if (customers.length === 0) {
@@ -520,7 +502,7 @@ app.get('/api/appointments', authenticateToken, async (req, res) => {
 });
 
 // Get appointments for date range
-app.get('/api/appointments/range', async (req, res) => {
+app.get('/api/appointments/range', authenticateToken, async (req, res) => {
   try {
     const { start, end } = req.query;
     const [rows] = await pool.query(`
@@ -646,9 +628,23 @@ app.delete('/api/assignments/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Serve static files from React app in production (MOET NA ALLE API ROUTES)
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  // Serve React app for all non-API routes (catch-all moet als laatste)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+}
+
 // Start server
 initDatabase().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Server draait op http://localhost:${PORT}`);
+    if (process.env.NODE_ENV === 'production') {
+      console.log('📦 Productie modus: React app wordt geserveerd');
+    }
   });
 });
