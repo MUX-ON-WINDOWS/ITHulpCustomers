@@ -164,6 +164,7 @@ const CalendarView = () => {
       {showModal && (
         <AppointmentModal
           appointment={selectedAppointment}
+          selectedDate={date}
           onClose={() => {
             setShowModal(false);
             setSelectedAppointment(null);

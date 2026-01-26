@@ -107,6 +107,7 @@
   border: 1px solid #f0f0f0;
 }
 
+
 .assignment-card:hover {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   transform: translateX(8px);
@@ -125,6 +126,12 @@
   font-size: 1.1rem;
   color: #333;
   flex: 1;
+}
+
+.assignment-title {
+  font-weight: 700;
+  color: #1a1a1a;
+  font-size: 1.15rem;
 }
 
 .assignment-status {
@@ -156,9 +163,11 @@
 }
 
 .assignment-description {
-  color: #666;
+  color: #333;
   margin-bottom: 0.75rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .assignment-footer {
@@ -249,6 +258,41 @@
   background: #fafafa;
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
+}
+
+.assignment-detail-modal {
+  max-width: 600px;
+}
+
+.assignment-detail-content {
+  padding: 2rem;
+}
+
+.assignment-detail-content .detail-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.assignment-detail-content .detail-section:last-child {
+  border-bottom: none;
+}
+
+.assignment-detail-content .detail-section h3 {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.assignment-detail-content .detail-value {
+  font-size: 1.1rem;
+  color: #1a1a1a;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.6;
 }
 
 @media (max-width: 768px) {

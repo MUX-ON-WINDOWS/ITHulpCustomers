@@ -371,7 +371,7 @@ app.get('/api/customers', authenticateToken, async (req, res) => {
   }
 });
 
-// Get single customer with assignments
+// Get single customer with assignments and completed appointments
 app.get('/api/customers/:id', authenticateToken, async (req, res) => {
   try {
     const [customers] = await pool.query('SELECT * FROM customers WHERE id = ?', [req.params.id]);
@@ -379,12 +379,57 @@ app.get('/api/customers/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Klant niet gevonden' });
     }
     
+    // Get assignments
     const [assignments] = await pool.query(
       'SELECT * FROM assignments WHERE customer_id = ? ORDER BY start_datum DESC',
       [req.params.id]
     );
     
-    res.json({ ...customers[0], assignments });
+    // Get completed appointments (voltooide afspraken)
+    const [completedAppointments] = await pool.query(
+      `SELECT 
+        id,
+        customer_id,
+        titel,
+        beschrijving,
+        DATE(start_datum) as start_datum,
+        DATE(eind_datum) as eind_datum,
+        status,
+        created_at,
+        updated_at,
+        'appointment' as source
+      FROM appointments 
+      WHERE customer_id = ? AND status = 'voltooid' 
+      ORDER BY start_datum DESC`,
+      [req.params.id]
+    );
+    
+    // Combine assignments and completed appointments
+    // Convert appointments to assignment-like format
+    const allAssignments = [
+      ...assignments.map(a => ({ ...a, source: 'assignment' })),
+      ...completedAppointments.map(apt => ({
+        id: `apt_${apt.id}`, // Prefix to avoid ID conflicts
+        customer_id: apt.customer_id,
+        titel: apt.titel,
+        beschrijving: apt.beschrijving,
+        start_datum: apt.start_datum,
+        eind_datum: apt.eind_datum,
+        status: apt.status,
+        kosten: null, // Appointments don't have costs
+        created_at: apt.created_at,
+        updated_at: apt.updated_at,
+        source: 'appointment',
+        appointment_id: apt.id // Keep original appointment ID
+      }))
+    ].sort((a, b) => {
+      // Sort by date descending
+      const dateA = new Date(a.start_datum);
+      const dateB = new Date(b.start_datum);
+      return dateB - dateA;
+    });
+    
+    res.json({ ...customers[0], assignments: allAssignments });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -538,10 +583,51 @@ app.post('/api/appointments', authenticateToken, async (req, res) => {
 app.put('/api/appointments/:id', authenticateToken, async (req, res) => {
   try {
     const { customer_id, titel, beschrijving, start_datum, eind_datum, status } = req.body;
+    
+    // Get current appointment to check if status changed to 'voltooid'
+    const [currentAppointments] = await pool.query(
+      'SELECT * FROM appointments WHERE id = ?',
+      [req.params.id]
+    );
+    
+    if (currentAppointments.length === 0) {
+      return res.status(404).json({ error: 'Afspraak niet gevonden' });
+    }
+    
+    const currentAppointment = currentAppointments[0];
+    const wasVoltooid = currentAppointment.status === 'voltooid';
+    const isNowVoltooid = status === 'voltooid';
+    
+    // Update appointment
     await pool.query(
       'UPDATE appointments SET customer_id = ?, titel = ?, beschrijving = ?, start_datum = ?, eind_datum = ?, status = ? WHERE id = ?',
       [customer_id, titel, beschrijving, start_datum, eind_datum, status, req.params.id]
     );
+    
+    // If status changed to 'voltooid', create assignment automatically
+    if (!wasVoltooid && isNowVoltooid) {
+      // Convert DATETIME to DATE for assignments
+      const startDate = start_datum ? start_datum.split(' ')[0] : null;
+      const endDate = eind_datum ? eind_datum.split(' ')[0] : null;
+      
+      // Check if assignment already exists for this appointment (prevent duplicates)
+      const [existingAssignments] = await pool.query(
+        'SELECT id FROM assignments WHERE customer_id = ? AND titel = ? AND DATE(start_datum) = ?',
+        [customer_id, titel, startDate]
+      );
+      
+      if (existingAssignments.length === 0) {
+        // Create assignment from appointment data
+        await pool.query(
+          'INSERT INTO assignments (customer_id, titel, beschrijving, start_datum, eind_datum, status) VALUES (?, ?, ?, ?, ?, ?)',
+          [customer_id, titel, beschrijving || '', startDate, endDate, 'voltooid']
+        );
+        console.log(`✅ Assignment automatisch aangemaakt voor voltooide afspraak: ${titel} (Klant ID: ${customer_id})`);
+      } else {
+        console.log(`ℹ️ Assignment bestaat al voor deze afspraak: ${titel}`);
+      }
+    }
+    
     res.json({ message: 'Afspraak bijgewerkt' });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import './Modal.css';
 
-const AppointmentModal = ({ appointment, onClose, onSave, onDelete }) => {
+const AppointmentModal = ({ appointment, selectedDate, onClose, onSave, onDelete }) => {
   const [customers, setCustomers] = useState([]);
   const [formData, setFormData] = useState({
     customer_id: '',
@@ -19,6 +19,7 @@ const AppointmentModal = ({ appointment, onClose, onSave, onDelete }) => {
   useEffect(() => {
     loadCustomers();
     if (appointment) {
+      // Editing existing appointment
       const startDate = new Date(appointment.start_datum);
       const endDate = appointment.eind_datum ? new Date(appointment.eind_datum) : null;
       setFormData({
@@ -31,8 +32,21 @@ const AppointmentModal = ({ appointment, onClose, onSave, onDelete }) => {
         eind_tijd: endDate ? format(endDate, 'HH:mm') : '',
         status: appointment.status || 'gepland'
       });
+    } else if (selectedDate) {
+      // New appointment - prefill with selected date
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      setFormData({
+        customer_id: '',
+        titel: '',
+        beschrijving: '',
+        start_datum: dateStr,
+        start_tijd: '09:00',
+        eind_datum: dateStr,
+        eind_tijd: '17:00',
+        status: 'gepland'
+      });
     }
-  }, [appointment]);
+  }, [appointment, selectedDate]);
 
   const loadCustomers = async () => {
     try {

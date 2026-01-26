@@ -5,11 +5,16 @@ import nl from 'date-fns/locale/nl';
 import { useAuth } from '../context/AuthContext';
 import './CustomerDetail.css';
 import AssignmentModal from './AssignmentModal';
+import AppointmentModal from './AppointmentModal';
 import UserAssignmentModal from './UserAssignmentModal';
 
 const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showAssignmentDetail, setShowAssignmentDetail] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [selectedAssignmentDetail, setSelectedAssignmentDetail] = useState(null);
   const [assignedUsers, setAssignedUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const { isAdmin } = useAuth();
@@ -26,9 +31,39 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
     setShowAssignmentModal(true);
   };
 
-  const handleEditAssignment = (assignment) => {
-    setSelectedAssignment(assignment);
-    setShowAssignmentModal(true);
+  const handleAssignmentClick = async (assignment) => {
+    // Show detail view first
+    if (assignment.source === 'appointment' && assignment.appointment_id) {
+      try {
+        const response = await axios.get(`/api/appointments`);
+        const appointment = response.data.find(apt => apt.id === assignment.appointment_id);
+        if (appointment) {
+          setSelectedAppointment(appointment);
+          setSelectedAssignmentDetail({ ...assignment, appointment: appointment });
+          setShowAssignmentDetail(true);
+        } else {
+          alert('Afspraak niet gevonden');
+        }
+      } catch (error) {
+        console.error('Fout bij laden afspraak:', error);
+        alert('Kon afspraak niet laden');
+      }
+      return;
+    }
+    // Regular assignment - show detail
+    setSelectedAssignmentDetail(assignment);
+    setShowAssignmentDetail(true);
+  };
+
+  const handleEditFromDetail = () => {
+    setShowAssignmentDetail(false);
+    if (selectedAssignmentDetail.source === 'appointment' && selectedAssignmentDetail.appointment) {
+      setSelectedAppointment(selectedAssignmentDetail.appointment);
+      setShowAppointmentModal(true);
+    } else {
+      setSelectedAssignment(selectedAssignmentDetail);
+      setShowAssignmentModal(true);
+    }
   };
 
   const handleSaveAssignment = async (assignmentData) => {
@@ -45,7 +80,9 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
       const response = await axios.get(`/api/customers/${customer.id}`);
       Object.assign(customer, response.data);
       setShowAssignmentModal(false);
+      setShowAssignmentDetail(false);
       setSelectedAssignment(null);
+      setSelectedAssignmentDetail(null);
     } catch (error) {
       console.error('Fout bij opslaan opdracht:', error);
       alert('Kon opdracht niet opslaan');
@@ -62,10 +99,51 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
       const response = await axios.get(`/api/customers/${customer.id}`);
       Object.assign(customer, response.data);
       setShowAssignmentModal(false);
+      setShowAssignmentDetail(false);
       setSelectedAssignment(null);
+      setSelectedAssignmentDetail(null);
     } catch (error) {
       console.error('Fout bij verwijderen opdracht:', error);
       alert('Kon opdracht niet verwijderen');
+    }
+  };
+
+  const handleSaveAppointment = async (appointmentData) => {
+    try {
+      if (selectedAppointment) {
+        await axios.put(`/api/appointments/${selectedAppointment.id}`, appointmentData);
+      } else {
+        await axios.post('/api/appointments', appointmentData);
+      }
+      await onRefresh();
+      const response = await axios.get(`/api/customers/${customer.id}`);
+      Object.assign(customer, response.data);
+      setShowAppointmentModal(false);
+      setShowAssignmentDetail(false);
+      setSelectedAppointment(null);
+      setSelectedAssignmentDetail(null);
+    } catch (error) {
+      console.error('Fout bij opslaan afspraak:', error);
+      alert('Kon afspraak niet opslaan');
+    }
+  };
+
+  const handleDeleteAppointment = async (id) => {
+    if (!window.confirm('Weet je zeker dat je deze afspraak wilt verwijderen?')) {
+      return;
+    }
+    try {
+      await axios.delete(`/api/appointments/${id}`);
+      await onRefresh();
+      const response = await axios.get(`/api/customers/${customer.id}`);
+      Object.assign(customer, response.data);
+      setShowAppointmentModal(false);
+      setShowAssignmentDetail(false);
+      setSelectedAppointment(null);
+      setSelectedAssignmentDetail(null);
+    } catch (error) {
+      console.error('Fout bij verwijderen afspraak:', error);
+      alert('Kon afspraak niet verwijderen');
     }
   };
 
@@ -186,10 +264,10 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
                   <div
                     key={assignment.id}
                     className="assignment-card"
-                    onClick={() => handleEditAssignment(assignment)}
+                    onClick={() => handleAssignmentClick(assignment)}
                   >
                     <div className="assignment-header">
-                      <h4>{assignment.titel}</h4>
+                      <h4 className="assignment-title">{assignment.titel}</h4>
                       <span className={`assignment-status status-${assignment.status}`}>
                         {assignment.status}
                       </span>
@@ -240,6 +318,88 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
           onSave={handleSaveAssignment}
           onDelete={handleDeleteAssignment}
         />
+      )}
+
+      {showAppointmentModal && (
+        <AppointmentModal
+          appointment={selectedAppointment}
+          onClose={() => {
+            setShowAppointmentModal(false);
+            setSelectedAppointment(null);
+          }}
+          onSave={handleSaveAppointment}
+          onDelete={handleDeleteAppointment}
+        />
+      )}
+
+      {showAssignmentDetail && selectedAssignmentDetail && (
+        <div className="modal-overlay" onClick={() => setShowAssignmentDetail(false)}>
+          <div className="modal-content assignment-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Opdracht Details</h2>
+              <button className="modal-close" onClick={() => setShowAssignmentDetail(false)}>×</button>
+            </div>
+
+            <div className="assignment-detail-content">
+              <div className="detail-section">
+                <h3>Titel</h3>
+                <p className="detail-value">{selectedAssignmentDetail.titel}</p>
+              </div>
+
+              {selectedAssignmentDetail.beschrijving && (
+                <div className="detail-section">
+                  <h3>Beschrijving</h3>
+                  <p className="detail-value">{selectedAssignmentDetail.beschrijving}</p>
+                </div>
+              )}
+
+              <div className="detail-section">
+                <h3>Datum</h3>
+                <p className="detail-value">
+                  {format(new Date(selectedAssignmentDetail.start_datum), 'EEEE d MMMM yyyy', { locale: nl })}
+                  {selectedAssignmentDetail.eind_datum && 
+                    ` - ${format(new Date(selectedAssignmentDetail.eind_datum), 'EEEE d MMMM yyyy', { locale: nl })}`
+                  }
+                </p>
+              </div>
+
+              <div className="detail-section">
+                <h3>Status</h3>
+                <span className={`assignment-status status-${selectedAssignmentDetail.status}`}>
+                  {selectedAssignmentDetail.status}
+                </span>
+              </div>
+
+              {selectedAssignmentDetail.kosten && (
+                <div className="detail-section">
+                  <h3>Kosten</h3>
+                  <p className="detail-value">€{parseFloat(selectedAssignmentDetail.kosten).toFixed(2)}</p>
+                </div>
+              )}
+
+              {selectedAssignmentDetail.source === 'appointment' && selectedAssignmentDetail.appointment && (
+                <div className="detail-section">
+                  <h3>Tijd</h3>
+                  <p className="detail-value">
+                    {format(new Date(selectedAssignmentDetail.appointment.start_datum), 'HH:mm')}
+                    {selectedAssignmentDetail.appointment.eind_datum && 
+                      ` - ${format(new Date(selectedAssignmentDetail.appointment.eind_datum), 'HH:mm')}`
+                    }
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setShowAssignmentDetail(false)}>
+                Sluiten
+              </button>
+              <button className="btn-primary" onClick={handleEditFromDetail}>
+                Bewerken
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
