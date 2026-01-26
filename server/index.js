@@ -276,6 +276,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Get current user
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  console.log('👤 GET /api/auth/me - Request ontvangen');
   try {
     const [users] = await pool.query(
       'SELECT id, gebruikersnaam, email, voornaam, achternaam, rol FROM users WHERE id = ?',
@@ -471,6 +472,7 @@ app.get('/api/customers/:id/users', authenticateToken, async (req, res) => {
 
 // Get all appointments (filtered by user access)
 app.get('/api/appointments', authenticateToken, async (req, res) => {
+  console.log('📅 GET /api/appointments - Request ontvangen');
   try {
     let query, params;
     
@@ -631,11 +633,29 @@ app.delete('/api/assignments/:id', authenticateToken, async (req, res) => {
 // Serve static files from React app in production (MOET NA ALLE API ROUTES)
 if (process.env.NODE_ENV === 'production') {
   const path = require('path');
-  app.use(express.static(path.join(__dirname, '../client/build')));
+  const staticPath = path.join(__dirname, '../client/build');
+  
+  // Create static middleware
+  const staticMiddleware = express.static(staticPath);
+  
+  // Serve static files ONLY for non-API routes
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      // Skip static serving for API routes - they should be handled by API routes above
+      console.log(`🔍 Static middleware: Skipping API route ${req.method} ${req.path}`);
+      return next();
+    }
+    // For non-API routes, use static file serving
+    console.log(`📁 Static middleware: Serving static for ${req.method} ${req.path}`);
+    staticMiddleware(req, res, next);
+  });
   
   // Serve React app for all non-API routes (catch-all moet als laatste)
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(staticPath, 'index.html'));
   });
 }
 
