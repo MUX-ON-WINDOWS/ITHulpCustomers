@@ -93,6 +93,7 @@ const UsersView = () => {
                 <th>Naam</th>
                 <th>Gebruikersnaam</th>
                 <th>Email</th>
+                <th>Werkadres</th>
                 <th>Rol</th>
                 <th>Status</th>
                 <th>Acties</th>
@@ -108,6 +109,7 @@ const UsersView = () => {
                   </td>
                   <td>{user.gebruikersnaam}</td>
                   <td>{user.email}</td>
+                  <td>{user.werkadres || '-'}</td>
                   <td>
                     <span className={`role-badge role-${user.rol}`}>
                       {user.rol}

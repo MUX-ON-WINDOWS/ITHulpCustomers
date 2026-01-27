@@ -8,6 +8,7 @@ const UserModal = ({ user, onClose, onSave, onDelete }) => {
     wachtwoord: '',
     voornaam: '',
     achternaam: '',
+    werkadres: '',
     rol: 'gebruiker',
     actief: true
   });
@@ -20,6 +21,7 @@ const UserModal = ({ user, onClose, onSave, onDelete }) => {
         wachtwoord: '',
         voornaam: user.voornaam || '',
         achternaam: user.achternaam || '',
+        werkadres: user.werkadres || '',
         rol: user.rol || 'gebruiker',
         actief: user.actief !== undefined ? user.actief : true
       });
@@ -82,6 +84,16 @@ const UserModal = ({ user, onClose, onSave, onDelete }) => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Werkadres</label>
+            <input
+              type="text"
+              value={formData.werkadres}
+              onChange={(e) => setFormData({ ...formData, werkadres: e.target.value })}
+              placeholder="Bijv. Rosariopark 38, 3541, Utrecht"
             />
           </div>
 

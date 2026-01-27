@@ -17,7 +17,7 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
   const [selectedAssignmentDetail, setSelectedAssignmentDetail] = useState(null);
   const [assignedUsers, setAssignedUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const { isAdmin } = useAuth();
+  const { isAdmin, user: currentUser } = useAuth();
 
   useEffect(() => {
     loadAssignedUsers();
@@ -177,6 +177,37 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
     }
   };
 
+  const handleOpenAddressInMaps = () => {
+    if (!customer.adres) return;
+
+    const destination = encodeURIComponent(customer.adres);
+    const fallbackOrigin = encodeURIComponent(currentUser?.werkadres || 'Rosariopark 38');
+
+    const openWithOrigin = (origin) => {
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const origin = encodeURIComponent(
+            `${position.coords.latitude},${position.coords.longitude}`
+          );
+          openWithOrigin(origin);
+        },
+        () => {
+          // Als locatie niet opgehaald kan worden, gebruik fallback adres
+          openWithOrigin(fallbackOrigin);
+        },
+        { timeout: 5000 }
+      );
+    } else {
+      // Geen geolocatie beschikbaar, gebruik fallback adres
+      openWithOrigin(fallbackOrigin);
+    }
+  };
+
   return (
     <div className="customer-detail-overlay" onClick={onClose}>
       <div className="customer-detail-content" onClick={(e) => e.stopPropagation()}>
@@ -210,7 +241,13 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
               {customer.adres && (
                 <div className="detail-item">
                   <span className="detail-label">Adres:</span>
-                  <span>{customer.adres}</span>
+                  <button
+                    type="button"
+                    className="detail-link"
+                    onClick={handleOpenAddressInMaps}
+                  >
+                    {customer.adres}
+                  </button>
                 </div>
               )}
               {customer.opmerkingen && (

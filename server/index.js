@@ -121,6 +121,7 @@ async function initializeSchema() {
         wachtwoord VARCHAR(255) NOT NULL,
         voornaam VARCHAR(100),
         achternaam VARCHAR(100),
+        werkadres VARCHAR(100),
         rol VARCHAR(50) DEFAULT 'gebruiker',
         actief BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -184,7 +185,7 @@ if (process.env.NODE_ENV !== 'production') {
 // Register new user (alleen admin)
 app.post('/api/auth/register', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { gebruikersnaam, email, wachtwoord, voornaam, achternaam, rol } = req.body;
+    const { gebruikersnaam, email, wachtwoord, voornaam, achternaam, werkadres, rol } = req.body;
     
     // Check if user already exists
     const [existing] = await pool.query(
@@ -201,11 +202,11 @@ app.post('/api/auth/register', authenticateToken, requireAdmin, async (req, res)
     
     // Insert user
     const [result] = await pool.query(
-      'INSERT INTO users (gebruikersnaam, email, wachtwoord, voornaam, achternaam, rol) VALUES (?, ?, ?, ?, ?, ?)',
-      [gebruikersnaam, email, hashedPassword, voornaam, achternaam, rol || 'gebruiker']
+      'INSERT INTO users (gebruikersnaam, email, wachtwoord, voornaam, achternaam, werkadres, rol) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [gebruikersnaam, email, hashedPassword, voornaam, achternaam, werkadres || null, rol || 'gebruiker']
     );
     
-    const [newUser] = await pool.query('SELECT id, gebruikersnaam, email, voornaam, achternaam, rol FROM users WHERE id = ?', [result.insertId]);
+    const [newUser] = await pool.query('SELECT id, gebruikersnaam, email, voornaam, achternaam, werkadres, rol FROM users WHERE id = ?', [result.insertId]);
     res.json(newUser[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -221,7 +222,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     // Find user
     const [users] = await pool.query(
-      'SELECT id, gebruikersnaam, email, wachtwoord, voornaam, achternaam, rol, actief FROM users WHERE gebruikersnaam = ? OR email = ?',
+      'SELECT id, gebruikersnaam, email, wachtwoord, voornaam, achternaam, werkadres, rol, actief FROM users WHERE gebruikersnaam = ? OR email = ?',
       [gebruikersnaam, gebruikersnaam]
     );
     
@@ -266,6 +267,7 @@ app.post('/api/auth/login', async (req, res) => {
         email: user.email,
         voornaam: user.voornaam,
         achternaam: user.achternaam,
+        werkadres: user.werkadres,
         rol: user.rol
       }
     });
@@ -279,7 +281,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   console.log('👤 GET /api/auth/me - Request ontvangen');
   try {
     const [users] = await pool.query(
-      'SELECT id, gebruikersnaam, email, voornaam, achternaam, rol FROM users WHERE id = ?',
+      'SELECT id, gebruikersnaam, email, voornaam, achternaam, werkadres, rol FROM users WHERE id = ?',
       [req.user.id]
     );
     
@@ -299,7 +301,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id, gebruikersnaam, email, voornaam, achternaam, rol, actief, created_at FROM users ORDER BY achternaam ASC'
+      'SELECT id, gebruikersnaam, email, voornaam, achternaam, werkadres, rol, actief, created_at FROM users ORDER BY achternaam ASC'
     );
     res.json(rows);
   } catch (error) {
@@ -310,10 +312,10 @@ app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
 // Update user (alleen admin)
 app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { gebruikersnaam, email, voornaam, achternaam, rol, actief, wachtwoord } = req.body;
+    const { gebruikersnaam, email, voornaam, achternaam, werkadres, rol, actief, wachtwoord } = req.body;
     
-    let updateQuery = 'UPDATE users SET gebruikersnaam = ?, email = ?, voornaam = ?, achternaam = ?, rol = ?, actief = ?';
-    let params = [gebruikersnaam, email, voornaam, achternaam, rol, actief];
+    let updateQuery = 'UPDATE users SET gebruikersnaam = ?, email = ?, voornaam = ?, achternaam = ?, werkadres = ?, rol = ?, actief = ?';
+    let params = [gebruikersnaam, email, voornaam, achternaam, werkadres || null, rol, actief];
     
     if (wachtwoord) {
       const hashedPassword = await bcrypt.hash(wachtwoord, 10);
