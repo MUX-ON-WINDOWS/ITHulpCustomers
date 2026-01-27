@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   ithulp-customers:
+    # Door de image naam hier vast te leggen, vult CasaOS dit automatisch in
+    image: ithulpcustomers-app:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,10 +21,14 @@ services:
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
     volumes:
-      # Optioneel: voor logs of data persistence
       - ./logs:/app/logs
     networks:
       - casaos-network
+    # CasaOS specifieke labels voor automatische titels en iconen
+    labels:
+      icon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/docker.png
+      title: "ITHulp Customers"
+      casaos_main_app: ithulp-customers
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
