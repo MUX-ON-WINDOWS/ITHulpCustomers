@@ -22,6 +22,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
     volumes:
       - ./logs:/app/logs
+      - .:/app/
     networks:
       - casaos-network
     # CasaOS specifieke labels voor automatische titels en iconen
