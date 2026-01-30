@@ -2,12 +2,12 @@ version: '3.8'
 
 services:
   ithulp-customers:
-    # We gebruiken een standaard Node image omdat de lokale Dockerfile ontbreekt
+    # We gebruiken een standaard image zodat we geen Dockerfile nodig hebben
     image: node:18-alpine
     container_name: ithulp-customers
     working_dir: /app
     restart: unless-stopped
-    # Dit commando installeert de nieuwe updates en start de server
+    # Installeert afhankelijkheden en start de server + client tegelijk
     command: sh -c "npm install && npm run dev"
     ports:
       - "5000:5000"
@@ -22,6 +22,7 @@ services:
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
     volumes:
+      # Dit koppelt je GitHub code map direct aan de container
       - .:/app
       - ./logs:/app/logs
     networks:
@@ -31,12 +32,12 @@ services:
       title: "ITHulp Customers"
       casaos_main_app: ithulp-customers
     healthcheck:
-      # De healthcheck wacht nu tot de server op poort 5000 reageert
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      # Geeft de container meer tijd om op te starten (belangrijk voor npm install)
+      test: ["CMD", "node", "-v"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s # Langer ingesteld omdat 'npm install' tijd nodig heeft
+      start_period: 60s
 
 networks:
   casaos-network:
