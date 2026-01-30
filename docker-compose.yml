@@ -2,15 +2,16 @@ version: '3.8'
 
 services:
   ithulp-customers:
-    # Door de image naam hier vast te leggen, vult CasaOS dit automatisch in
-    image: ithulpcustomers-app:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # We gebruiken een standaard Node image omdat de lokale Dockerfile ontbreekt
+    image: node:18-alpine
     container_name: ithulp-customers
+    working_dir: /app
     restart: unless-stopped
+    # Dit commando installeert de nieuwe updates en start de server
+    command: sh -c "npm install && npm run dev"
     ports:
       - "5000:5000"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=5000
@@ -21,21 +22,21 @@ services:
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
     volumes:
+      - .:/app
       - ./logs:/app/logs
-      - .:/app/
     networks:
       - casaos-network
-    # CasaOS specifieke labels voor automatische titels en iconen
     labels:
       icon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/docker.png
       title: "ITHulp Customers"
       casaos_main_app: ithulp-customers
     healthcheck:
+      # De healthcheck wacht nu tot de server op poort 5000 reageert
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 60s # Langer ingesteld omdat 'npm install' tijd nodig heeft
 
 networks:
   casaos-network:
