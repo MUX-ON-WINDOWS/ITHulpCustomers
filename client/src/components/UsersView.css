@@ -22,7 +22,7 @@
 }
 
 .users-header .header-icon {
-  color: #4CAF50;
+  color: #4CD7A0;
   font-size: 1.75rem;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .users-table thead {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4CD7A0 0%, #3DBF90 100%);
 }
 
 .users-table th {
@@ -117,7 +117,7 @@
 }
 
 .btn-edit {
-  background: #4CAF50;
+  background: #4CD7A0;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -128,9 +128,9 @@
 }
 
 .btn-edit:hover {
-  background: #45a049;
+  background: #3DBF90;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 8px rgba(76, 215, 160, 0.3);
 }
 
 @media (max-width: 768px) {

@@ -22,7 +22,7 @@
 }
 
 .customers-header .header-icon {
-  color: #4CAF50;
+  color: #4CD7A0;
   font-size: 1.75rem;
 }
 
@@ -59,7 +59,7 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: #4CD7A0;
 }
 
 .loading,
@@ -94,7 +94,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.3s ease;
-  border-left: 5px solid #4CAF50;
+  border-left: 5px solid #4CD7A0;
   border: 1px solid #f0f0f0;
   position: relative;
   overflow: hidden;
@@ -107,14 +107,14 @@
   left: 0;
   width: 5px;
   height: 100%;
-  background: linear-gradient(180deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(180deg, #4CD7A0 0%, #3DBF90 100%);
   transition: width 0.3s ease;
 }
 
 .customer-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
-  border-color: #4CAF50;
+  box-shadow: 0 8px 24px rgba(76, 215, 160, 0.2);
+  border-color: #4CD7A0;
 }
 
 .customer-card:hover::before {
@@ -136,13 +136,13 @@
 
 .customer-company {
   display: inline-block;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4CD7A0 0%, #3DBF90 100%);
   color: white;
   padding: 0.4rem 1rem;
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 500;
-  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 2px 6px rgba(76, 215, 160, 0.3);
 }
 
 .customer-card-body {
@@ -162,11 +162,11 @@
 }
 
 .customer-info:hover {
-  color: #4CAF50;
+  color: #4CD7A0;
 }
 
 .customer-info:hover .info-icon {
-  color: #4CAF50;
+  color: #4CD7A0;
 }
 
 .info-icon {

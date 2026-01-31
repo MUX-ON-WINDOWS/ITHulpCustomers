@@ -20,12 +20,12 @@
 }
 
 .calendar-header .header-icon {
-  color: #4CAF50;
+  color: #4CD7A0;
   font-size: 1.75rem;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4CD7A0 0%, #3DBF90 100%);
   color: white;
   border: none;
   padding: 0.875rem 1.75rem;
@@ -37,13 +37,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 215, 160, 0.3);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+  background: linear-gradient(135deg, #3DBF90 0%, #4CD7A0 100%);
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 6px 20px rgba(76, 215, 160, 0.4);
 }
 
 .btn-icon {
@@ -81,16 +81,16 @@
 }
 
 .react-calendar__tile--active {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4CD7A0 0%, #3DBF90 100%);
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 2px 8px rgba(76, 215, 160, 0.3);
 }
 
 .react-calendar__tile--now {
   background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
   font-weight: 600;
-  border: 2px solid #4CAF50;
+  border: 2px solid #4CD7A0;
 }
 
 .calendar-dot {
@@ -100,7 +100,7 @@
 }
 
 .dot-count {
-  background: #4CAF50;
+  background: #4CD7A0;
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -114,7 +114,7 @@
 
 .appointments-sidebar {
   padding-left: 2rem;
-  border-left: 3px solid #4CAF50;
+  border-left: 3px solid #4CD7A0;
 }
 
 .appointments-sidebar h3 {
@@ -129,7 +129,7 @@
 }
 
 .appointments-sidebar .sidebar-icon {
-  color: #4CAF50;
+  color: #4CD7A0;
   font-size: 1.25rem;
 }
 
@@ -166,7 +166,7 @@
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-left: 4px solid #4CAF50;
+  border-left: 4px solid #4CD7A0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   margin-bottom: 1rem;
 }
@@ -174,13 +174,13 @@
 .appointment-card:hover {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   transform: translateX(8px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+  box-shadow: 0 4px 12px rgba(76, 215, 160, 0.15);
   border-left-width: 5px;
 }
 
 .appointment-time {
   font-weight: 600;
-  color: #4CAF50;
+  color: #4CD7A0;
   margin-bottom: 0.5rem;
 }
 
