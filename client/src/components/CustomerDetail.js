@@ -183,9 +183,20 @@ const CustomerDetail = ({ customer, onClose, onEdit, onRefresh }) => {
     const destination = encodeURIComponent(customer.adres);
     const fallbackOrigin = encodeURIComponent(currentUser?.werkadres || 'Rosariopark 38');
 
+    // Detecteer mobiel apparaat
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     const openWithOrigin = (origin) => {
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (isMobile) {
+        // Op mobiel: gebruik geo intent voor Android of comgooglemaps voor iOS
+        // De universele Google Maps URL werkt als we window.location gebruiken
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+        window.location.href = mapsUrl;
+      } else {
+        // Op desktop: open in nieuw tabblad
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
     };
 
     if (navigator.geolocation) {
