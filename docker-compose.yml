@@ -7,14 +7,15 @@ services:
     container_name: ithulp-customers
     working_dir: /app
     restart: unless-stopped
-    # Installeert afhankelijkheden en start de server + client tegelijk
-    command: sh -c "npm install && npm run dev"
+    # Installeert root + client dependencies, daarna server + client (HOST=0.0.0.0 nodig voor React in container)
+    command: sh -c "npm run install-all && HOST=0.0.0.0 npm run dev"
     ports:
       - "5000:5000"
-      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=5000
+      - HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-3306}
       - DB_USER=${DB_USER}
@@ -22,8 +23,10 @@ services:
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
     volumes:
-      # Dit koppelt je GitHub code map direct aan de container
+      # Projectmap koppelen, maar container-eigen node_modules behouden (voorkomt conflict met host)
       - .:/app
+      - /app/node_modules
+      - /app/client/node_modules
       - ./logs:/app/logs
     networks:
       - casaos-network
